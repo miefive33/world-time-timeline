@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Timeline Clock</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>World Timeline Clock</h1>
+        <p class="subtitle">世界の時差を「線」で読む。会議の地獄を少し減らすためのタイムライン時計。</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="addCityBtn" class="primary-btn">+ Add City</button>
+        <button id="nowBtn" class="secondary-btn">Now</button>
+      </div>
+    </header>
+
+    <main class="main-layout">
+      <section class="grid-header">
+        <div class="header-cell city-col">Cities</div>
+        <div class="header-cell digital-col">Digital</div>
+        <div class="header-cell timeline-col">
+          <div class="timeline-header-wrap">
+            <div class="timeline-hours" id="timelineHours"></div>
+            <div class="center-indicator">
+              <span class="center-label">NOW / SELECTED</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="rowsContainer" class="rows-container"></section>
+    </main>
+  </div>
+
+  <div id="addCityModal" class="modal-backdrop hidden" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Add City</h2>
+        <button id="closeModalBtn" class="icon-btn" aria-label="Close">×</button>
+      </div>
+      <p class="modal-note">都市を追加すると、デジタル表示とタイムラインの両方に反映されます。</p>
+      <input id="citySearchInput" class="city-search" type="text" placeholder="Search city or country..." />
+      <div id="citySearchResults" class="city-search-results"></div>
+    </div>
+  </div>
+
+  <template id="rowTemplate">
+    <article class="city-row" draggable="true">
+      <div class="city-col city-cell">
+        <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
+        <div class="city-info">
+          <div class="city-label"></div>
+          <div class="timezone-label"></div>
+        </div>
+        <button class="icon-btn delete-btn" title="Delete">×</button>
+      </div>
+
+      <div class="digital-col digital-cell">
+        <div class="digital-time"></div>
+        <div class="digital-date"></div>
+      </div>
+
+      <div class="timeline-col timeline-cell">
+        <div class="timeline-row"></div>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
