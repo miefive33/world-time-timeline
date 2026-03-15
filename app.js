@@ -1,6 +1,6 @@
-const STORAGE_KEY = "worldTimelineClockState_v1";
+const STORAGE_KEY = "worldTimelineClockState_v2";
 const HOUR_WIDTH = 92;
-const HOUR_COUNT = 24;
+const HOUR_COUNT = 13
 const HALF_HOUR_WIDTH = HOUR_WIDTH / 2;
 const DEFAULT_WORK_START = 9;
 const DEFAULT_WORK_END = 18;
@@ -34,6 +34,7 @@ const state = {
     startX: 0,
     startOffset: 0,
   },
+  rafId: null,
 };
 
 const refs = {
@@ -48,50 +49,41 @@ const refs = {
   citySearchResults: document.getElementById("citySearchResults"),
 };
 
+function getCatalogItemById(id) {
+  return cityCatalog.find((item) => item.id === id);
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       state.cities = defaultCities.map(getCatalogItemById).filter(Boolean);
+      state.offsetMinutes = 0;
       return;
     }
     const parsed = JSON.parse(raw);
-    state.offsetMinutes = Number(parsed.offsetMinutes ?? 0);
     state.cities = (parsed.cities ?? [])
-      .map((item) => {
-        if (item.id) {
-          const found = getCatalogItemById(item.id);
-          if (found) return found;
-        }
-        if (item.timezone && item.city) return item;
-        return null;
-      })
+      .map((item) => item.id ? getCatalogItemById(item.id) : null)
       .filter(Boolean);
+
     if (!state.cities.length) {
       state.cities = defaultCities.map(getCatalogItemById).filter(Boolean);
     }
+
+    // リロード時は常に「現在」に戻す
+    state.offsetMinutes = 0;
   } catch (err) {
     console.error("Failed to load state", err);
     state.cities = defaultCities.map(getCatalogItemById).filter(Boolean);
+    state.offsetMinutes = 0;
   }
 }
 
 function saveState() {
   const payload = {
-    offsetMinutes: Math.round(state.offsetMinutes),
-    cities: state.cities.map((c) => ({
-      id: c.id,
-      label: c.label,
-      city: c.city,
-      country: c.country,
-      timezone: c.timezone,
-    })),
+    cities: state.cities.map((c) => ({ id: c.id })),
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-}
-
-function getCatalogItemById(id) {
-  return cityCatalog.find((item) => item.id === id);
 }
 
 function pad2(value) {
@@ -113,16 +105,13 @@ function getZonedParts(date, timezone) {
     minute: "2-digit",
     hour12: false,
   });
+
   const parts = dtf.formatToParts(date);
   const map = {};
-  parts.forEach((p) => {
+  for (const p of parts) {
     if (p.type !== "literal") map[p.type] = p.value;
-  });
+  }
   return map;
-}
-
-function getHourAt(date, timezone) {
-  return Number(getZonedParts(date, timezone).hour);
 }
 
 function formatDigital(date, timezone) {
@@ -131,113 +120,6 @@ function formatDigital(date, timezone) {
     time: `${parts.hour}:${parts.minute}`,
     date: `${parts.weekday} ${parts.day}/${parts.month}/${parts.year}`,
   };
-}
-
-function renderTimelineHeader() {
-  refs.timelineHours.innerHTML = "";
-  const centerTime = getCenterTime();
-  const totalWidth = HOUR_WIDTH * HOUR_COUNT;
-  const startUtcMs = centerTime.getTime() - 12 * 60 * 60 * 1000;
-  for (let i = 0; i <= HOUR_COUNT; i++) {
-    const ms = startUtcMs + i * 60 * 60 * 1000;
-    const dt = new Date(ms);
-    const hh = pad2(dt.getHours());
-    const label = document.createElement("div");
-    label.className = "hour-label";
-    label.style.left = `${i * HOUR_WIDTH}px`;
-    label.textContent = `${hh}:00`;
-    refs.timelineHours.appendChild(label);
-  }
-  refs.timelineHours.style.width = `${totalWidth}px`;
-}
-
-function createTimelineRow(city) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "timeline-row";
-  wrapper.style.width = `${HOUR_WIDTH * HOUR_COUNT}px`;
-
-  const centerTime = getCenterTime();
-  const startUtcMs = centerTime.getTime() - 12 * 60 * 60 * 1000;
-
-  for (let i = 0; i < HOUR_COUNT; i++) {
-    const segDate = new Date(startUtcMs + i * 60 * 60 * 1000);
-    const localHour = getHourAt(segDate, city.timezone);
-
-    const seg = document.createElement("div");
-    seg.className = `segment ${localHour >= 6 && localHour < 18 ? "day" : "night"}`;
-    seg.style.left = `${i * HOUR_WIDTH}px`;
-    seg.style.width = `${HOUR_WIDTH}px`;
-    wrapper.appendChild(seg);
-
-    const hourLine = document.createElement("div");
-    hourLine.className = "hour-line";
-    hourLine.style.left = `${i * HOUR_WIDTH}px`;
-    wrapper.appendChild(hourLine);
-
-    const halfLine = document.createElement("div");
-    halfLine.className = "half-hour-line";
-    halfLine.style.left = `${i * HOUR_WIDTH + HALF_HOUR_WIDTH}px`;
-    wrapper.appendChild(halfLine);
-  }
-
-  const lastLine = document.createElement("div");
-  lastLine.className = "hour-line";
-  lastLine.style.left = `${HOUR_WIDTH * HOUR_COUNT}px`;
-  wrapper.appendChild(lastLine);
-
-  const workBlock = document.createElement("div");
-  workBlock.className = "work-block";
-
-  const centerLocal = getZonedParts(centerTime, city.timezone);
-  const centerDate = {
-    year: Number(centerLocal.year),
-    month: Number(centerLocal.month),
-    day: Number(centerLocal.day),
-  };
-
-  const startOffsetHours = computeRelativeHourOffset(
-    centerTime,
-    city.timezone,
-    centerDate.year,
-    centerDate.month,
-    centerDate.day,
-    DEFAULT_WORK_START,
-    0
-  );
-
-  const endOffsetHours = computeRelativeHourOffset(
-    centerTime,
-    city.timezone,
-    centerDate.year,
-    centerDate.month,
-    centerDate.day,
-    DEFAULT_WORK_END,
-    0
-  );
-
-  const left = (HOUR_COUNT / 2 + startOffsetHours) * HOUR_WIDTH;
-  const width = (endOffsetHours - startOffsetHours) * HOUR_WIDTH;
-
-  workBlock.style.left = `${left}px`;
-  workBlock.style.width = `${Math.max(width, 18)}px`;
-  workBlock.textContent = "Work";
-  wrapper.appendChild(workBlock);
-
-  const centerLine = document.createElement("div");
-  centerLine.className = "center-line";
-  wrapper.appendChild(centerLine);
-
-  const chip = document.createElement("div");
-  chip.className = "current-chip";
-  chip.textContent = `${city.city}`;
-  wrapper.appendChild(chip);
-
-  return wrapper;
-}
-
-function computeRelativeHourOffset(baseUtcDate, timezone, year, month, day, hour, minute) {
-  const targetUtc = zonedDateTimeToUtc(year, month, day, hour, minute, timezone);
-  return (targetUtc.getTime() - baseUtcDate.getTime()) / 3600000;
 }
 
 function zonedDateTimeToUtc(year, month, day, hour, minute, timezone) {
@@ -269,15 +151,140 @@ function getTimezoneOffsetMinutes(date, timezone) {
     Number(parts.minute),
     Number(parts.second)
   );
-
   return (asUTC - date.getTime()) / 60000;
+}
+
+function computeRelativeHourOffset(baseUtcDate, timezone, year, month, day, hour, minute) {
+  const targetUtc = zonedDateTimeToUtc(year, month, day, hour, minute, timezone);
+  return (targetUtc.getTime() - baseUtcDate.getTime()) / 3600000;
+}
+
+function buildTimelineHours(){
+
+  const centerTime = getCenterTime()
+
+  const hours = []
+
+  const start = new Date(centerTime)
+
+  start.setHours(centerTime.getHours() - 6)
+
+  for(let i=0;i<HOUR_COUNT;i++){
+
+    const d = new Date(start)
+
+    d.setHours(start.getHours() + i)
+
+    hours.push(d)
+
+  }
+
+  return hours
+
+}
+
+function renderTimelineHeader(){
+
+  refs.timelineHours.innerHTML = "";
+
+  const baseCity = state.cities[0];
+
+  const hours = buildTimelineHours();
+
+  const totalWidth = HOUR_WIDTH * HOUR_COUNT;
+
+  hours.forEach((d, i) => {
+
+    const parts = getZonedParts(d, baseCity.timezone);
+
+    const label = document.createElement("div");
+
+    label.className = "hour-label";
+
+    label.style.left = `${i * HOUR_WIDTH}px`;
+
+    label.textContent = pad2(parts.hour) + ":00";
+
+    refs.timelineHours.appendChild(label);
+
+  });
+
+  refs.timelineHours.style.width = `${totalWidth}px`;
+
+}
+
+function createTimelineRow(city) {
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "timeline-row";
+  wrapper.style.width = `${HOUR_WIDTH * HOUR_COUNT}px`;
+
+  const hours = buildTimelineHours();
+
+  const centerTime = getCenterTime()
+
+  const minuteOffset = centerTime.getMinutes()
+
+  const minutePx = HOUR_WIDTH / 60
+
+  const offsetPx = minuteOffset * minutePx
+
+  hours.forEach((date, i) => {
+
+    const parts = getZonedParts(date, city.timezone)
+
+    const localHour = Number(parts.hour)
+
+    const seg = document.createElement("div")
+
+    seg.className = `segment ${localHour >= 6 && localHour < 18 ? "day" : "night"}`
+
+    seg.style.left = `${i * HOUR_WIDTH - offsetPx}px`
+
+    seg.style.width = `${HOUR_WIDTH}px`
+
+    wrapper.appendChild(seg)
+
+    const hourLine = document.createElement("div")
+    hourLine.className = "hour-line"
+    hourLine.style.left = `${i * HOUR_WIDTH - offsetPx}px`
+
+    wrapper.appendChild(hourLine)
+
+    const halfLine = document.createElement("div")
+    halfLine.className = "half-hour-line"
+    halfLine.style.left = `${i * HOUR_WIDTH + HALF_HOUR_WIDTH - offsetPx}px`
+
+    wrapper.appendChild(halfLine)
+
+  })
+
+  const lastLine = document.createElement("div")
+  lastLine.className = "hour-line"
+  lastLine.style.left = `${HOUR_WIDTH * HOUR_COUNT - offsetPx}px`
+
+  wrapper.appendChild(lastLine)
+
+  const centerLine = document.createElement("div")
+  centerLine.className = "center-line"
+
+  wrapper.appendChild(centerLine)
+
+  const chip = document.createElement("div")
+  chip.className = "current-chip"
+  chip.textContent = city.city
+
+  wrapper.appendChild(chip)
+
+  return wrapper
+
 }
 
 function renderRows() {
   refs.rowsContainer.innerHTML = "";
   const centerTime = getCenterTime();
 
-  state.cities.forEach((city) => {
+  for (const city of state.cities) {
     const fragment = refs.rowTemplate.content.cloneNode(true);
     const row = fragment.querySelector(".city-row");
     const cityLabel = fragment.querySelector(".city-label");
@@ -288,7 +295,7 @@ function renderRows() {
     const timelineMount = fragment.querySelector(".timeline-row");
     const deleteBtn = fragment.querySelector(".delete-btn");
 
-    row.dataset.cityId = city.id || `${city.timezone}_${city.city}`;
+    row.dataset.cityId = city.id;
     cityLabel.textContent = `${city.label} (${city.city})`;
     timezoneLabel.textContent = city.timezone;
 
@@ -299,12 +306,10 @@ function renderRows() {
     timelineMount.replaceWith(createTimelineRow(city));
 
     deleteBtn.addEventListener("click", () => {
-      state.cities = state.cities.filter((item) => item !== city);
+      state.cities = state.cities.filter((item) => item.id !== city.id);
       saveState();
       renderApp();
     });
-
-    attachTimelineDrag(timelineCell);
 
     row.addEventListener("dragstart", () => {
       state.dragCityId = row.dataset.cityId;
@@ -332,14 +337,15 @@ function renderRows() {
       reorderCities(state.dragCityId, row.dataset.cityId);
     });
 
+    timelineCell.dataset.timeline = "1";
     refs.rowsContainer.appendChild(fragment);
-  });
+  }
 }
 
 function reorderCities(sourceId, targetId) {
   if (!sourceId || !targetId || sourceId === targetId) return;
-  const fromIndex = state.cities.findIndex((c) => (c.id || `${c.timezone}_${c.city}`) === sourceId);
-  const toIndex = state.cities.findIndex((c) => (c.id || `${c.timezone}_${c.city}`) === targetId);
+  const fromIndex = state.cities.findIndex((c) => c.id === sourceId);
+  const toIndex = state.cities.findIndex((c) => c.id === targetId);
   if (fromIndex < 0 || toIndex < 0) return;
   const [moved] = state.cities.splice(fromIndex, 1);
   state.cities.splice(toIndex, 0, moved);
@@ -347,41 +353,62 @@ function reorderCities(sourceId, targetId) {
   renderApp();
 }
 
-function attachTimelineDrag(timelineCell) {
-  const onPointerDown = (event) => {
-    if (event.button !== undefined && event.button !== 0) return;
-    state.timelineDrag.active = true;
-    state.timelineDrag.startX = event.clientX ?? event.touches?.[0]?.clientX ?? 0;
-    state.timelineDrag.startOffset = state.offsetMinutes;
-    timelineCell.classList.add("dragging-timeline");
-  };
-
-  const onPointerMove = (event) => {
-    if (!state.timelineDrag.active) return;
-    const clientX = event.clientX ?? event.touches?.[0]?.clientX ?? 0;
-    const deltaX = clientX - state.timelineDrag.startX;
-    state.offsetMinutes = state.timelineDrag.startOffset - (deltaX / HOUR_WIDTH) * 60;
+function queueRender() {
+  if (state.rafId) return;
+  state.rafId = requestAnimationFrame(() => {
+    state.rafId = null;
     renderApp();
-  };
+  });
+}
 
-  const onPointerUp = () => {
+function bindTimelineEvents() {
+  refs.rowsContainer.addEventListener("mousedown", (event) => {
+    const cell = event.target.closest(".timeline-cell");
+    if (!cell) return;
+    state.timelineDrag.active = true;
+    state.timelineDrag.startX = event.clientX;
+    state.timelineDrag.startOffset = state.offsetMinutes;
+    document.querySelectorAll(".timeline-cell").forEach((el) => el.classList.add("dragging-timeline"));
+    event.preventDefault();
+  });
+
+  refs.rowsContainer.addEventListener("touchstart", (event) => {
+    const cell = event.target.closest(".timeline-cell");
+    if (!cell) return;
+    state.timelineDrag.active = true;
+    state.timelineDrag.startX = event.touches[0].clientX;
+    state.timelineDrag.startOffset = state.offsetMinutes;
+    document.querySelectorAll(".timeline-cell").forEach((el) => el.classList.add("dragging-timeline"));
+  }, { passive: true });
+
+  window.addEventListener("mousemove", (event) => {
+    if (!state.timelineDrag.active) return;
+    const deltaX = event.clientX - state.timelineDrag.startX;
+    state.offsetMinutes = state.timelineDrag.startOffset - (deltaX / HOUR_WIDTH) * 60;
+    queueRender();
+  });
+
+  window.addEventListener("touchmove", (event) => {
+    if (!state.timelineDrag.active) return;
+    const deltaX = event.touches[0].clientX - state.timelineDrag.startX;
+    state.offsetMinutes = state.timelineDrag.startOffset - (deltaX / HOUR_WIDTH) * 60;
+    queueRender();
+  }, { passive: true });
+
+  const finish = () => {
     if (!state.timelineDrag.active) return;
     state.timelineDrag.active = false;
     document.querySelectorAll(".timeline-cell").forEach((el) => el.classList.remove("dragging-timeline"));
-    saveState();
   };
 
-  timelineCell.onmousedown = onPointerDown;
-  timelineCell.ontouchstart = onPointerDown;
-  window.addEventListener("mousemove", onPointerMove);
-  window.addEventListener("touchmove", onPointerMove, { passive: true });
-  window.addEventListener("mouseup", onPointerUp);
-  window.addEventListener("touchend", onPointerUp);
+  window.addEventListener("mouseup", finish);
+  window.addEventListener("touchend", finish);
 }
 
 function renderApp() {
   renderTimelineHeader();
   renderRows();
+  updateNowLabel();
 }
 
 function openModal() {
@@ -403,21 +430,19 @@ function renderSearchResults(query) {
   const filtered = cityCatalog.filter((city) => {
     if (existingIds.has(city.id)) return false;
     if (!q) return true;
-    return [
-      city.label,
-      city.city,
-      city.country,
-      city.timezone,
-    ].join(" ").toLowerCase().includes(q);
+    return [city.label, city.city, city.country, city.timezone]
+      .join(" ")
+      .toLowerCase()
+      .includes(q);
   });
 
   refs.citySearchResults.innerHTML = "";
   if (!filtered.length) {
-    refs.citySearchResults.innerHTML = `<div class="empty-state">該当する都市がありません。地球は広いけど、検索語は狭かったようです。</div>`;
+    refs.citySearchResults.innerHTML = `<div class="empty-state">該当する都市がありません。</div>`;
     return;
   }
 
-  filtered.forEach((city) => {
+  for (const city of filtered) {
     const item = document.createElement("button");
     item.className = "search-item";
     item.type = "button";
@@ -435,13 +460,12 @@ function renderSearchResults(query) {
       renderSearchResults(refs.citySearchInput.value);
     });
     refs.citySearchResults.appendChild(item);
-  });
+  }
 }
 
 function bindEvents() {
   refs.nowBtn.addEventListener("click", () => {
     state.offsetMinutes = 0;
-    saveState();
     renderApp();
   });
 
@@ -459,12 +483,30 @@ function bindEvents() {
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeModal();
   });
+
+  bindTimelineEvents();
 }
 
 function startClockLoop() {
   setInterval(() => {
-    renderApp();
+    if (!state.timelineDrag.active && Math.abs(state.offsetMinutes) < 0.1) {
+      renderApp();
+    }
   }, 1000);
+}
+
+function getBaseCityTime() {
+  const centerTime = getCenterTime()
+  const baseCity = state.cities[0]
+  const parts = getZonedParts(centerTime, baseCity.timezone)
+  return parts.hour + ":" + parts.minute
+}
+
+function updateNowLabel(){
+  const label = document.querySelector(".center-label")
+  if(!label) return
+  const time = getBaseCityTime()
+  label.textContent = "NOW " + time
 }
 
 function init() {

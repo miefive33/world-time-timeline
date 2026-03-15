@@ -231,7 +231,7 @@ button, input {
   color: var(--muted);
 }
 
-.center-indicator {
+/* .center-indicator {
   position: absolute;
   inset: 0 auto 0 50%;
   width: 0;
@@ -239,6 +239,7 @@ button, input {
   pointer-events: none;
   z-index: 3;
 }
+ */
 
 .center-label {
   position: absolute;
@@ -488,4 +489,96 @@ button, input {
   .timeline-cell {
     min-height: 88px;
   }
+}
+
+/* =========================
+   iPhone layout
+   ========================= */
+
+@media (max-width: 600px) {
+
+  .app-shell {
+    padding: 10px;
+  }
+
+  .topbar {
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  .topbar h1 {
+    font-size: 1.2rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  /* header非表示 */
+  .grid-header {
+    display: none;
+  }
+
+  /* カードUI */
+  .city-row {
+    display: block;
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+    border: none;
+  }
+
+  .city-cell {
+    border: none;
+    padding: 10px 12px 0 12px;
+  }
+
+  .digital-cell {
+    border: none;
+    padding: 0 12px 10px 12px;
+  }
+
+  .timeline-cell {
+    border: none;
+    padding-bottom: 10px;
+  }
+
+  /* 都市名 */
+  .city-label {
+    font-size: 1rem;
+  }
+
+  .timezone-label {
+    font-size: 0.75rem;
+  }
+
+  /* 時計 */
+  .digital-time {
+    font-size: 1.5rem;
+  }
+
+  .digital-date {
+    font-size: 0.75rem;
+  }
+
+  /* タイムライン */
+  .timeline-cell {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .timeline-row {
+    height: 70px;
+  }
+
+}
+
+.timeline-cell {
+  scroll-behavior: smooth;
+}
+
+.timeline-cell::-webkit-scrollbar {
+  display: none;
 }
