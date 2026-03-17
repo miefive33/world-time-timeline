@@ -8,13 +8,15 @@
   --primary-hover: #1f5ce0;
   --danger: #ef4444;
   --danger-bg: #fff2f2;
+
   --day: #f3e5a7;
   --night: #c9d9ee;
+  --work: #c7f0c7;
+
   --row-h: 88px;
   --city-w: 280px;
   --digital-w: 140px;
-  --timeline-w: 1196px; /* 92 * 13 */
-  --hour-w: 92px;
+
   --radius: 18px;
   --shadow: 0 8px 24px rgba(28, 55, 90, 0.08);
 }
@@ -39,6 +41,10 @@ button {
   padding: 24px;
 }
 
+/* =========================
+   カード
+   ========================= */
+
 .top-card,
 .board-card {
   background: rgba(250, 252, 255, 0.92);
@@ -59,13 +65,12 @@ button {
 .top-card h1 {
   margin: 0 0 8px 0;
   font-size: 2rem;
-  line-height: 1.1;
 }
 
 .subtitle {
   margin: 0;
   color: var(--subtext);
-  font-size: 0.98rem;
+  font-size: 0.95rem;
 }
 
 .toolbar {
@@ -80,7 +85,6 @@ button {
   border-radius: 14px;
   padding: 12px 18px;
   font-weight: 700;
-  transition: 0.18s ease;
 }
 
 .primary-btn {
@@ -88,28 +92,18 @@ button {
   color: #fff;
 }
 
-.primary-btn:hover {
-  background: var(--primary-hover);
-}
-
 .secondary-btn {
   background: #fff;
-  color: var(--text);
   border: 1px solid #cfd9e5;
 }
 
-.secondary-btn:hover {
-  background: #f5f8fc;
-}
-
-.board-card {
-  overflow: hidden;
-}
+/* =========================
+   ヘッダー
+   ========================= */
 
 .board-header {
   display: grid;
   grid-template-columns: var(--city-w) var(--digital-w) 1fr;
-  min-height: 76px;
   border-bottom: 1px solid var(--line);
   background: #f4f7fb;
 }
@@ -119,18 +113,16 @@ button {
 .header-timeline {
   padding: 16px;
   font-weight: 700;
-  color: #49617f;
   border-right: 1px solid var(--line);
 }
 
 .header-timeline {
   border-right: none;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .timeline-header-inner {
   position: relative;
-  width: var(--timeline-w);
   height: 44px;
 }
 
@@ -143,26 +135,20 @@ button {
   position: absolute;
   top: 8px;
   transform: translateX(-50%);
-  color: #5a6e89;
-  font-size: 0.92rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  white-space: nowrap;
+  color: #5a6e89;
 }
 
-.rows-container {
-  position: relative;
-}
+/* =========================
+   行
+   ========================= */
 
 .city-row {
   display: grid;
   grid-template-columns: var(--city-w) var(--digital-w) 1fr;
   min-height: var(--row-h);
   border-bottom: 1px solid var(--line);
-  background: rgba(255,255,255,0.35);
-}
-
-.city-row:last-child {
-  border-bottom: none;
 }
 
 .city-col,
@@ -173,99 +159,42 @@ button {
 
 .timeline-col {
   border-right: none;
+  overflow-x: auto;
 }
 
 .city-col {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
-}
-
-.drag-handle {
-  width: 28px;
-  height: 28px;
-  border: 1px solid #cfd9e5;
-  border-radius: 8px;
-  background: #fff;
-  color: #5c6c80;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-  cursor: grab;
-  flex: 0 0 auto;
-  font-size: 0.95rem;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-}
-
-.city-info {
-  min-width: 0;
-  flex: 1;
+  padding: 12px;
 }
 
 .city-label {
   font-weight: 700;
-  font-size: 1.05rem;
-  color: var(--text);
 }
 
 .timezone-label {
-  margin-top: 4px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--subtext);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.delete-btn {
-  margin-left: auto;
-  width: 32px;
-  height: 32px;
-  border: 1px solid #d5b8b8;
-  border-radius: 8px;
-  background: #fff;
-  color: #d63535;
-  font-size: 1rem;
-  line-height: 1;
-  flex: 0 0 auto;
-}
-
-.delete-btn:hover {
-  background: var(--danger-bg);
 }
 
 .digital-col {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;
   font-weight: 700;
-  font-size: 1rem;
-  color: #10243a;
 }
 
-.timeline-col {
-  position: relative;
-  overflow: hidden;
-}
+/* =========================
+   タイムライン
+   ========================= */
 
 .timeline-track {
   position: relative;
-  width: var(--timeline-w);
   height: var(--row-h);
-  touch-action: none;
-  cursor: grab;
-  user-select: none;
 }
 
-.timeline-track.dragging-time {
-  cursor: grabbing;
-}
+/* セグメント */
 
 .segment {
   position: absolute;
@@ -281,173 +210,80 @@ button {
   background: var(--night);
 }
 
-.hour-line,
-.half-hour-line,
-.center-line {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  pointer-events: none;
+.segment.work {
+  background: var(--work);
 }
 
+/* ライン */
+
 .hour-line {
+  position: absolute;
+  top: 0;
   width: 1px;
+  height: 100%;
   background: rgba(90, 110, 137, 0.16);
 }
 
 .half-hour-line {
+  position: absolute;
+  top: 0;
   width: 1px;
+  height: 100%;
   background: rgba(90, 110, 137, 0.08);
 }
+
+/* 現在時刻 */
 
 .center-line {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: calc(50% - 1px);
+  left: 50%;
   width: 2px;
   background: #ff4f4f;
   z-index: 3;
-  pointer-events: none;
 }
 
 .current-chip {
   position: absolute;
-  top: 8px;
-  left: calc(50% + 8px);
-  z-index: 3;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.92);
-  color: #4b607b;
+  top: 6px;
+  left: calc(50% + 6px);
+  background: #fff;
   border: 1px solid #d4deea;
-  font-size: 0.74rem;
+  border-radius: 999px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
-.city-row.drag-over {
-  outline: 2px dashed #7daaf7;
-  outline-offset: -2px;
-  background: rgba(99, 152, 255, 0.07);
+/* =========================
+   削除ボタン
+   ========================= */
+
+.delete-btn {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d5b8b8;
+  border-radius: 8px;
+  background: #fff;
+  color: #d63535;
 }
 
-.city-row.dragging-city {
-  opacity: 0.55;
-}
+/* =========================
+   ゴミ箱
+   ========================= */
 
 .trash-bin {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  width: 132px;
-  height: 92px;
-  border-radius: 18px;
+  width: 120px;
+  height: 80px;
+  border-radius: 16px;
+  background: #fff;
   border: 1px solid #e0c8c8;
-  background: rgba(255, 249, 249, 0.95);
-  box-shadow: var(--shadow);
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  color: #8e3b3b;
-  transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
-  z-index: 20;
-}
-
-.trash-bin.active {
-  transform: scale(1.04);
-  background: #fff0f0;
-  border-color: #f19b9b;
-}
-
-.trash-icon {
-  font-size: 1.7rem;
-  line-height: 1;
-}
-
-.trash-label {
-  margin-top: 4px;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-@media (max-width: 900px) {
-  .app-shell {
-    padding: 14px;
-  }
-
-  .top-card {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .toolbar {
-    justify-content: flex-end;
-  }
-
-  :root {
-    --city-w: 220px;
-    --digital-w: 120px;
-  }
-}
-
-@media (max-width: 720px){
-
-  :root{
-    --city-w: 160px;
-    --digital-w: 90px;
-  }
-
-  .city-row{
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto;
-  }
-
-  .city-col{
-    grid-column: 1 / 2;
-    grid-row: 1;
-    flex-direction: column;
-    align-items: flex-start;
-    gap:4px;
-  }
-
-  .city-label{
-    font-size:0.95rem;
-  }
-
-  .timezone-label{
-    font-size:0.72rem;
-  }
-
-  .digital-col{
-    grid-column: 1 / 2;
-    grid-row: 2;
-    justify-content:flex-start;
-    font-size:0.9rem;
-  }
-
-  .timeline-col{
-    grid-column: 2 / 3;
-    grid-row: 1 / 3;
-  }
-
-  .drag-handle{
-    width:22px;
-    height:22px;
-    font-size:0.7rem;
-  }
-
-}
-
-.segment.work{
-  background:#c7f0c7;
-}
-
-.meeting-line{
-  position:absolute;
-  top:0;
-  width:3px;
-  height:100%;
-  background:#00c2ff;
-  z-index:5;
+  justify-content: center;
 }

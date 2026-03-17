@@ -1,0 +1,171 @@
+@media (max-width: 768px){
+
+  /* =========================
+     全体
+     ========================= */
+
+  body{
+    font-size:14px;
+    overflow:hidden; /* ←横スクロール殺す */
+  }
+
+  .app-shell{
+    padding:10px;
+  }
+
+  /* =========================
+     ヘッダー（上部カード）
+     ========================= */
+
+  .top-card{
+    padding:12px;
+    gap:8px;
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .top-card h1{
+    font-size:1.2rem;
+  }
+
+  .subtitle{
+    font-size:0.75rem;
+  }
+
+  .toolbar{
+    width:100%;
+    gap:8px;
+  }
+
+  .primary-btn,
+  .secondary-btn{
+    flex:1;
+    padding:14px;
+    font-size:1rem;
+    min-height:44px;
+  }
+
+  /* =========================
+     ★ ボードヘッダー（重要修正）
+     ========================= */
+
+  .board-header{
+    grid-template-columns: 1fr; /* 1列にする */
+  }
+
+  /* Cities / Digital は削除 */
+  .header-city,
+  .header-digital{
+    display:none;
+  }
+
+  /* 時間軸ヘッダーのみ表示 */
+  .header-timeline{
+    width:100%;
+    border-right:none;
+    overflow:hidden;
+    background:#f0f4f8;
+    border-bottom:2px solid #d0d8e5;
+
+    /* 固定（神UX） */
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+
+  .timeline-header-inner{
+    /* JSがwidth制御 */
+  }
+
+  .hour-label{
+    font-size:0.7rem;
+  }
+
+  /* =========================
+     行レイアウト（縦積み）
+     ========================= */
+
+  .city-row{
+    display:flex;
+    flex-direction:column;
+  }
+
+  .city-col{
+    width:100%;
+    padding:10px;
+    gap:8px;
+  }
+
+  .city-label{
+    font-size:0.9rem;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .timezone-label{
+    font-size:0.7rem;
+  }
+
+  .digital-col{
+    width:100%;
+    justify-content:flex-start;
+    padding:0 10px 6px;
+    font-size:0.9rem;
+  }
+
+  .delete-btn{
+    width:40px;
+    height:40px;
+    font-size:1.2rem;
+  }
+
+  /* =========================
+     ★ タイムライン（最重要）
+     ========================= */
+
+  .timeline-col{
+    width:100%;
+
+    /* ←ネイティブスクロール無効 */
+    overflow:hidden;
+
+    /* ←タッチ操作をJSに委譲 */
+    touch-action:none;
+
+    /* ←iOS慣性スクロール停止 */
+    -webkit-overflow-scrolling:auto;
+  }
+
+  .timeline-track{
+    will-change: transform;
+  }
+
+  /* =========================
+     現在時刻（強調）
+     ========================= */
+
+  .center-line{
+    width:3px;
+    background:#ff4f4f;
+    box-shadow:0 0 6px rgba(255,79,79,0.5);
+  }
+
+  .current-chip{
+    font-size:0.7rem;
+    padding:2px 6px;
+    font-weight:700;
+  }
+
+  /* =========================
+     ゴミ箱
+     ========================= */
+
+  .trash-bin{
+    width:90px;
+    height:70px;
+    right:10px;
+    bottom:10px;
+  }
+
+}

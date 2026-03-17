@@ -1,29 +1,64 @@
 import { state } from "../core/state.js";
 import { getCenterTime, getZonedParts } from "../core/timeUtils.js";
 
-const HOUR_WIDTH = 92;
-const HOUR_COUNT = 13;
-const HALF_HOUR_WIDTH = HOUR_WIDTH / 2;
+/* ========================= */
 
-const WORK_START = 9
-const WORK_END = 18
+function getConfig() {
+  const isMobile = window.innerWidth <= 768;
 
-function buildTimelineHours() {
-  const centerTime = getCenterTime(state.offsetMinutes);
-  const hours = [];
+  return {
+    HOUR_WIDTH: isMobile ? 48 : 92,
+    HOUR_COUNT: isMobile ? 9 : 13
+  };
+}
+
+let { HOUR_WIDTH, HOUR_COUNT } = getConfig();
+
+const WORK_START = 9;
+const WORK_END = 18;
+
+/* =========================
+   共通
+   ========================= */
+
+function getTimelineWidth() {
+  return HOUR_WIDTH * HOUR_COUNT;
+}
+
+function getCenterTimeRounded() {
+  const t = getCenterTime(state.offsetMinutes);
+  t.setSeconds(0, 0);
+  return t;
+}
+
+function getXFromTime(targetTime, centerTime) {
+  const minutePx = HOUR_WIDTH / 60;
+  const centerPx = getTimelineWidth() / 2;
+  const diffMinutes = (targetTime.getTime() - centerTime.getTime()) / 60000;
+  return centerPx + diffMinutes * minutePx;
+}
+
+function buildHourAnchors(centerTime) {
+  const anchors = [];
 
   const start = new Date(centerTime);
   start.setMinutes(0, 0, 0);
-  start.setHours(start.getHours() - 6);
+  start.setHours(start.getHours() - Math.floor(HOUR_COUNT / 2) - 2);
 
-  for (let i = 0; i < HOUR_COUNT; i++) {
-    const d = new Date(start);
-    d.setHours(start.getHours() + i);
-    hours.push(d);
+  const end = new Date(centerTime);
+  end.setMinutes(0, 0, 0);
+  end.setHours(end.getHours() + Math.ceil(HOUR_COUNT / 2) + 2);
+
+  for (let d = new Date(start); d <= end; d.setHours(d.getHours() + 1)) {
+    anchors.push(new Date(d));
   }
 
-  return hours;
+  return anchors;
 }
+
+/* =========================
+   ヘッダー
+   ========================= */
 
 export function renderTimelineHeader() {
   const header = document.getElementById("timelineHours");
@@ -34,91 +69,87 @@ export function renderTimelineHeader() {
   const baseCity = state.cities[0];
   if (!baseCity) return;
 
-  const hours = buildTimelineHours();
-  const centerTime = getCenterTime(state.offsetMinutes);
-  const minuteOffset = centerTime.getMinutes();
-  const minutePx = HOUR_WIDTH / 60;
-  const offsetPx = minuteOffset * minutePx;
+  const centerTime = getCenterTimeRounded();
+  const timelineWidth = getTimelineWidth();
 
-  hours.forEach((d, i) => {
+  const headerInner = document.querySelector(".timeline-header-inner");
+  if (headerInner) {
+    headerInner.style.width = `${timelineWidth}px`;
+  }
+
+  const anchors = buildHourAnchors(centerTime);
+
+  anchors.forEach((d) => {
+    const x = getXFromTime(d, centerTime);
+
+    if (x < -40 || x > timelineWidth + 40) return;
+
     const parts = getZonedParts(d, baseCity.timezone);
 
     const label = document.createElement("div");
     label.className = "hour-label";
-    label.style.left = `${i * HOUR_WIDTH + HOUR_WIDTH/2 - offsetPx}px`;
+    label.style.left = `${x}px`;
     label.textContent = `${parts.hour}:00`;
 
     header.appendChild(label);
   });
 }
 
+/* =========================
+   行
+   ========================= */
+
 export function createTimelineRow(city) {
   const wrapper = document.createElement("div");
   wrapper.className = "timeline-track";
+  wrapper.style.width = `${getTimelineWidth()}px`;
 
-  const hours = buildTimelineHours();
-  const centerTime = getCenterTime(state.offsetMinutes);
-  const minuteOffset = centerTime.getMinutes();
-  const minutePx = HOUR_WIDTH / 60;
-  const offsetPx = minuteOffset * minutePx;
+  const centerTime = getCenterTimeRounded();
+  const timelineWidth = getTimelineWidth();
+  const anchors = buildHourAnchors(centerTime);
 
-  hours.forEach((date, i) => {
-    const parts = getZonedParts(date, city.timezone);
-    const localHour = Number(parts.hour);
+  anchors.forEach((d) => {
+    const x = getXFromTime(d, centerTime);
+
+    if (x > timelineWidth || x + HOUR_WIDTH < 0) return;
+
+    const parts = getZonedParts(d, city.timezone);
+    const hour = Number(parts.hour);
+
+    let cls = "night";
+    if (hour >= 6 && hour < 22) cls = "day";
+    if (hour >= WORK_START && hour < WORK_END) cls = "work";
 
     const seg = document.createElement("div");
-
-    let cls = "night"
-    if(localHour >= 6 && localHour < 22)
-    cls = "day"
-    if(localHour >= WORK_START && localHour < WORK_END)
-    cls = "work"
-    seg.className = `segment ${cls}`
-
-    seg.style.left = `${i * HOUR_WIDTH - offsetPx}px`;
+    seg.className = `segment ${cls}`;
+    seg.style.left = `${x}px`;
     seg.style.width = `${HOUR_WIDTH}px`;
     wrapper.appendChild(seg);
 
     const hourLine = document.createElement("div");
     hourLine.className = "hour-line";
-    hourLine.style.left = `${i * HOUR_WIDTH - offsetPx}px`;
+    hourLine.style.left = `${x}px`;
     wrapper.appendChild(hourLine);
 
     const halfLine = document.createElement("div");
     halfLine.className = "half-hour-line";
-    halfLine.style.left = `${i * HOUR_WIDTH + HALF_HOUR_WIDTH - offsetPx}px`;
+    halfLine.style.left = `${x + HOUR_WIDTH / 2}px`;
     wrapper.appendChild(halfLine);
   });
 
-  const lastLine = document.createElement("div");
-  lastLine.className = "hour-line";
-  lastLine.style.left = `${HOUR_WIDTH * HOUR_COUNT - offsetPx}px`;
-  wrapper.appendChild(lastLine);
+  const centerLine = document.createElement("div");
+  centerLine.className = "center-line";
+  wrapper.appendChild(centerLine);
 
-  const centerLine = document.createElement("div")
-  centerLine.className = "center-line"
-  wrapper.appendChild(centerLine)
-
-  if(state.meetingHour !== null){
-    const meet = document.createElement("div")
-    meet.className = "meeting-line"
-    meet.style.left =
-        (state.meetingHour * HOUR_WIDTH) + "px"
-    wrapper.appendChild(meet)
-  }
-
-  const chip = document.createElement("div");
-  chip.className = "current-chip";
-  chip.textContent = city.city;
-  wrapper.appendChild(chip);
-
-  wrapper.addEventListener("click",(e)=>{
-    const rect = wrapper.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const hour = Math.floor(x / HOUR_WIDTH)
-    state.meetingHour = hour
-  })
-
-  return wrapper; 
-
+  return wrapper;
 }
+
+/* ========================= */
+
+window.addEventListener("resize", () => {
+  const config = getConfig();
+  HOUR_WIDTH = config.HOUR_WIDTH;
+  HOUR_COUNT = config.HOUR_COUNT;
+
+  renderTimelineHeader();
+});
