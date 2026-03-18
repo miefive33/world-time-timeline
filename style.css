@@ -1,25 +1,23 @@
 :root {
   --bg: #eef3f8;
-  --card: #f7f9fc;
-  --line: #c9d3df;
+  --card: #ffffff;
+  --line: #d6e0ea;
   --text: #1f2a37;
-  --subtext: #637287;
+  --subtext: #6b7a90;
+
   --primary: #2d6df6;
-  --primary-hover: #1f5ce0;
   --danger: #ef4444;
-  --danger-bg: #fff2f2;
 
   --day: #f3e5a7;
   --night: #c9d9ee;
   --work: #c7f0c7;
 
-  --row-h: 88px;
-  --city-w: 280px;
-  --digital-w: 140px;
-
-  --radius: 18px;
-  --shadow: 0 8px 24px rgba(28, 55, 90, 0.08);
+  --radius: 16px;
 }
+
+/* =========================
+   ベース
+   ========================= */
 
 * {
   box-sizing: border-box;
@@ -27,171 +25,169 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
   color: var(--text);
-  background: linear-gradient(180deg, #edf3f8 0%, #e7eef6 100%);
+  font-size: 14px;
 }
 
-button {
-  font: inherit;
-  cursor: pointer;
-}
+/* =========================
+   レイアウト
+   ========================= */
 
 .app-shell {
-  padding: 24px;
-}
-
-/* =========================
-   カード
-   ========================= */
-
-.top-card,
-.board-card {
-  background: rgba(250, 252, 255, 0.92);
-  border: 1px solid #d6e0ea;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-.top-card {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  align-items: center;
-  padding: 24px 28px;
-  margin-bottom: 18px;
-}
-
-.top-card h1 {
-  margin: 0 0 8px 0;
-  font-size: 2rem;
-}
-
-.subtitle {
-  margin: 0;
-  color: var(--subtext);
-  font-size: 0.95rem;
-}
-
-.toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.primary-btn,
-.secondary-btn {
-  border: none;
-  border-radius: 14px;
-  padding: 12px 18px;
-  font-weight: 700;
-}
-
-.primary-btn {
-  background: var(--primary);
-  color: #fff;
-}
-
-.secondary-btn {
-  background: #fff;
-  border: 1px solid #cfd9e5;
-}
-
-/* =========================
-   ヘッダー
-   ========================= */
-
-.board-header {
-  display: grid;
-  grid-template-columns: var(--city-w) var(--digital-w) 1fr;
-  border-bottom: 1px solid var(--line);
-  background: #f4f7fb;
-}
-
-.header-city,
-.header-digital,
-.header-timeline {
-  padding: 16px;
-  font-weight: 700;
-  border-right: 1px solid var(--line);
-}
-
-.header-timeline {
-  border-right: none;
-  overflow-x: auto;
-}
-
-.timeline-header-inner {
-  position: relative;
-  height: 44px;
-}
-
-.timeline-hours {
-  position: absolute;
-  inset: 0;
-}
-
-.hour-label {
-  position: absolute;
-  top: 8px;
-  transform: translateX(-50%);
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #5a6e89;
-}
-
-/* =========================
-   行
-   ========================= */
-
-.city-row {
-  display: grid;
-  grid-template-columns: var(--city-w) var(--digital-w) 1fr;
-  min-height: var(--row-h);
-  border-bottom: 1px solid var(--line);
-}
-
-.city-col,
-.digital-col,
-.timeline-col {
-  border-right: 1px solid var(--line);
-}
-
-.timeline-col {
-  border-right: none;
-  overflow-x: auto;
-}
-
-.city-col {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   padding: 12px;
 }
 
-.city-label {
-  font-weight: 700;
+/* =========================
+   トップカード（iOS風）
+   ========================= */
+
+.top-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
 }
 
-.timezone-label {
+.top-card h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.subtitle {
   font-size: 0.8rem;
   color: var(--subtext);
 }
 
-.digital-col {
+/* =========================
+   ボタン
+   ========================= */
+
+.primary-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* =========================
+   ヘッダー削除
+   ========================= */
+
+.board-header {
+  display: none;
+}
+
+/* =========================
+   行（カード化）
+   ========================= */
+
+.city-row {
+  background: var(--card);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+}
+
+/* =========================
+   上段（都市 + 時刻）
+   ========================= */
+
+.city-col {
   display: flex;
   align-items: center;
-  justify-content: center;
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.drag-handle {
+  font-size: 12px;
+  color: #999;
+}
+
+.city-info {
+  flex: 1;
+}
+
+.city-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.timezone-label {
+  display: none;
+}
+
+/* デジタル時計（右） */
+
+.digital-col {
+  position: static; /* ← absoluteやめる */
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-left: auto; /* ← 右寄せ */
+}
+
+/* 削除ボタン */
+
+.delete-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: none;
+  background: #fff;
+  color: var(--danger);
   font-weight: 700;
 }
+
+/* =========================
+   時間軸
+   ========================= */
+
+.timeline-wrapper {
+  position: relative;
+}
+
+.time-labels {
+  position: relative;
+  height: 14px;
+  font-size: 10px;
+  color: #6b7a90;
+  min-width: 100%;
+}
+
+.time-label {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-weight: 600;
+}
+
 
 /* =========================
    タイムライン
    ========================= */
 
+.timeline-col {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-top: 1px solid var(--line);
+  scroll-behavior: smooth;
+  touch-action: none;
+  position: relative;
+}
+
 .timeline-track {
   position: relative;
-  height: var(--row-h);
+  height: 44px;
+  min-width: 1200px;
+  margin-top: 4px;
+  will-change: transform;
 }
 
 /* セグメント */
@@ -200,6 +196,7 @@ button {
   position: absolute;
   top: 0;
   height: 100%;
+  pointer-events: none;
 }
 
 .segment.day {
@@ -214,14 +211,14 @@ button {
   background: var(--work);
 }
 
-/* ライン */
+/* グリッドライン */
 
 .hour-line {
   position: absolute;
   top: 0;
   width: 1px;
   height: 100%;
-  background: rgba(90, 110, 137, 0.16);
+  background: rgba(0,0,0,0.15);
 }
 
 .half-hour-line {
@@ -229,45 +226,29 @@ button {
   top: 0;
   width: 1px;
   height: 100%;
-  background: rgba(90, 110, 137, 0.08);
+  background: rgba(0,0,0,0.07);
 }
 
-/* 現在時刻 */
+/* 現在時刻ライン */
 
 .center-line {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 50%;
   width: 2px;
   background: #ff4f4f;
-  z-index: 3;
+  z-index: 2;
 }
 
 .current-chip {
   position: absolute;
-  top: 6px;
+  top: 4px;
   left: calc(50% + 6px);
   background: #fff;
-  border: 1px solid #d4deea;
   border-radius: 999px;
   padding: 2px 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
-/* =========================
-   削除ボタン
-   ========================= */
-
-.delete-btn {
-  margin-left: auto;
-  width: 32px;
-  height: 32px;
-  border: 1px solid #d5b8b8;
-  border-radius: 8px;
-  background: #fff;
-  color: #d63535;
+  font-size: 0.65rem;
+  border: 1px solid #ddd;
 }
 
 /* =========================
@@ -276,14 +257,16 @@ button {
 
 .trash-bin {
   position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: 120px;
-  height: 80px;
-  border-radius: 16px;
+  bottom: 12px;
+  right: 12px;
+  width: 90px;
+  height: 60px;
+  border-radius: 14px;
   background: #fff;
-  border: 1px solid #e0c8c8;
+  border: 1px solid #f0d0d0;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 0.7rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }

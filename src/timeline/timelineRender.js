@@ -26,9 +26,7 @@ function getTimelineWidth() {
 }
 
 function getCenterTimeRounded() {
-  const t = getCenterTime(state.offsetMinutes);
-  t.setSeconds(0, 0);
-  return t;
+  return getCenterTime(state.offsetMinutes);
 }
 
 function getXFromTime(targetTime, centerTime) {
@@ -100,6 +98,9 @@ export function renderTimelineHeader() {
    ========================= */
 
 export function createTimelineRow(city) {
+  const container = document.createElement("div"); 
+  container.className = "timeline-wrapper"; 
+
   const wrapper = document.createElement("div");
   wrapper.className = "timeline-track";
   wrapper.style.width = `${getTimelineWidth()}px`;
@@ -107,6 +108,10 @@ export function createTimelineRow(city) {
   const centerTime = getCenterTimeRounded();
   const timelineWidth = getTimelineWidth();
   const anchors = buildHourAnchors(centerTime);
+
+  const labels = document.createElement("div");
+  labels.className = "time-labels";
+  labels.style.width = `${getTimelineWidth()}px`;
 
   anchors.forEach((d) => {
     const x = getXFromTime(d, centerTime);
@@ -116,6 +121,16 @@ export function createTimelineRow(city) {
     const parts = getZonedParts(d, city.timezone);
     const hour = Number(parts.hour);
 
+    // ===== 時間ラベル =====
+    if (x >= -40 && x <= timelineWidth + 40) {
+      const label = document.createElement("div");
+      label.className = "time-label";
+      label.style.left = `${x}px`;
+      label.textContent = `${parts.hour}`;
+      labels.appendChild(label);
+    }
+
+    // ===== セグメント（←これが消えてた！） =====
     let cls = "night";
     if (hour >= 6 && hour < 22) cls = "day";
     if (hour >= WORK_START && hour < WORK_END) cls = "work";
@@ -126,6 +141,7 @@ export function createTimelineRow(city) {
     seg.style.width = `${HOUR_WIDTH}px`;
     wrapper.appendChild(seg);
 
+    // ===== ライン =====
     const hourLine = document.createElement("div");
     hourLine.className = "hour-line";
     hourLine.style.left = `${x}px`;
@@ -139,9 +155,15 @@ export function createTimelineRow(city) {
 
   const centerLine = document.createElement("div");
   centerLine.className = "center-line";
-  wrapper.appendChild(centerLine);
+  const centerX = getTimelineWidth() / 2;
+  centerLine.style.left = `${centerX}px`;
 
-  return wrapper;
+  container.appendChild(centerLine);
+
+  wrapper.appendChild(labels);  
+  container.appendChild(wrapper);  
+
+  return container;
 }
 
 /* ========================= */

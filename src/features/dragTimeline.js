@@ -7,47 +7,59 @@ export function initTimelineDrag() {
   const container = document.getElementById("rowsContainer");
   if (!container) return;
 
+  let isDragging = false;
+  let startX = 0;
+  let startOffset = 0;
+  let activePointerId = null;
+
   container.addEventListener("pointerdown", (e) => {
     const track = e.target.closest(".timeline-track");
     if (!track) return;
 
-    state.timelineDrag.active = true;
-    state.timelineDrag.pointerId = e.pointerId;
-    state.timelineDrag.startX = e.clientX;
-    state.timelineDrag.startOffset = state.offsetMinutes;
+    e.preventDefault();
 
-    track.classList.add("dragging-time");
-    track.setPointerCapture(e.pointerId);
+    isDragging = true;
+    state.isDragging = true;
+
+    startX = e.clientX;
+    startOffset = state.offsetMinutes;
+
+    activePointerId = e.pointerId;
+    container.setPointerCapture(activePointerId);
   });
 
   container.addEventListener("pointermove", (e) => {
-    if (!state.timelineDrag.active) return;
+    if (!isDragging) return;
+    if (e.pointerId !== activePointerId) return;
 
-    const dx = e.clientX - state.timelineDrag.startX;
-    const minutes = Math.round(dx * -PIXELS_PER_MINUTE);
+    const dx = e.clientX - startX;
 
-    state.offsetMinutes = state.timelineDrag.startOffset + minutes;
+    // ✅ ここが最重要修正ポイント
+    const minutes = dx * -PIXELS_PER_MINUTE;
+    state.offsetMinutes = startOffset + minutes;
+
+    // ✅ transformは使わない（ズレの原因になる）
     renderApp();
   });
 
-  container.addEventListener("pointerup", (e) => {
-    finishTimelineDrag(e);
-  });
+  container.addEventListener("pointerup", finish);
+  container.addEventListener("pointercancel", finish);
+  container.addEventListener("pointerleave", finish);
 
-  container.addEventListener("pointercancel", (e) => {
-    finishTimelineDrag(e);
-  });
+  function finish(e) {
+    if (!isDragging) return;
+    if (e.pointerId !== activePointerId) return;
 
-  function finishTimelineDrag(e) {
-    if (!state.timelineDrag.active) return;
+    isDragging = false;
+    state.isDragging = false;
 
-    state.timelineDrag.active = false;
-    state.timelineDrag.pointerId = null;
+    try {
+      container.releasePointerCapture(activePointerId);
+    } catch {}
+
+    // ✅ 最終状態を保存
     saveState();
 
-    const track = e.target.closest?.(".timeline-track");
-    if (track) {
-      track.classList.remove("dragging-time");
-    }
+    activePointerId = null;
   }
 }
