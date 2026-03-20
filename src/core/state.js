@@ -5,6 +5,8 @@ export const state = {
   dragCityId: null,
   meetingHour: null,
 
+  isReorderMode: false,
+
   timelineDrag: {
     active: false,
     pointerId: null,

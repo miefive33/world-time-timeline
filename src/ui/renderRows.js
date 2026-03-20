@@ -26,7 +26,9 @@ export function renderApp() {
 
     const dragHandle = document.createElement("div");
     dragHandle.className = "drag-handle";
-    dragHandle.title = "ドラッグして並び替え";
+    dragHandle.title = state.isReorderMode
+      ? "ドラッグして並び替え"
+      : "並び替えモードで有効";
     dragHandle.textContent = "⋮⋮";
 
     const cityInfo = document.createElement("div");

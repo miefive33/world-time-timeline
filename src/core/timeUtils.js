@@ -31,9 +31,27 @@ export function getZonedParts(date, timezone) {
   return map;
 }
 
-export function formatDigitalTime(date, timezone) {
-  const parts = getZonedParts(date, timezone);
-  return `${parts.hour}:${parts.minute}:${parts.second}`;
+export function formatDigitalTime(centerTime, timezone) {
+  const date = new Date(centerTime);
+
+  const formatter = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: timezone,
+    month: "2-digit",
+    day: "2-digit",
+    weekday: "short",
+  });
+
+  const timeStr = formatter.format(date);
+  const dateStr = dateFormatter.format(date);
+
+  return `${timeStr} | ${dateStr}`;
 }
 
 export function formatOffsetLabel(timezone) {

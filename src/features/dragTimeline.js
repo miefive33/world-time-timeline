@@ -15,6 +15,7 @@ export function initTimelineDrag() {
   container.addEventListener("pointerdown", (e) => {
     const track = e.target.closest(".timeline-track");
     if (!track) return;
+    if (state.isReorderMode) return;
 
     e.preventDefault();
 
@@ -31,6 +32,7 @@ export function initTimelineDrag() {
   container.addEventListener("pointermove", (e) => {
     if (!isDragging) return;
     if (e.pointerId !== activePointerId) return;
+    if (state.isReorderMode) return;
 
     const dx = e.clientX - startX;
 

@@ -62,16 +62,52 @@ body {
 }
 
 /* =========================
-   ボタン
+   共通ボタン
    ========================= */
-
-.primary-btn {
+.toolbar button {
+  padding: 8px 14px;
+  border-radius: 8px;
   border: none;
-  border-radius: 12px;
-  padding: 10px 14px;
-  background: var(--primary);
-  color: #fff;
+  font-size: 14px;
   font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+/* =========================
+   Add City（メイン）
+   ========================= */
+.primary-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.primary-btn:hover {
+  background: #2563eb;
+}
+
+/* =========================
+   Reorder（サブ）
+   ========================= */
+.secondary-btn {
+  background: #374151;
+  color: white;
+}
+
+.secondary-btn:hover {
+  background: #1f2937;
+}
+
+/* =========================
+   Now（アクセント）
+   ========================= */
+.accent-btn {
+  background: #10b981;
+  color: white;
+}
+
+.accent-btn:hover {
+  background: #059669;
 }
 
 /* =========================
